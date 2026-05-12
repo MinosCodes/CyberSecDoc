@@ -1,5 +1,6 @@
 # IDOR
 
+
 An access control vulnerability allowing attackers to bypass authorization and access resources directly by modifying object identifiers.
 
 ## Definition
