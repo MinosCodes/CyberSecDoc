@@ -10,19 +10,52 @@ File inclusion is a vulnerability that occurs when an application loads files ba
 
 File inclusion issues can expose configuration files, source code, credentials, or system files. In more severe cases, they can be chained into remote code execution if an attacker can influence the included file.
 
-## Notes
+## Entry Point
 
-- Path traversal / directory traversal.
-- Dot-dot-slash attacks: `../`
-- Climb up directories until the root directory is reached.
-- Common OS files used while testing:
-- `/etc/passwd`: The most common file for testing LFI on Linux, as it is typically world-readable and reveals all users on the system.
-- `/etc/shadow`: Contains hashed user passwords (requires root privileges).
-- `/etc/issue`: Contains system identification information.
-- `/etc/profile`: Contains system-wide environment variables.
-- `/proc/version`: Reveals kernel version and system information.
-- `/proc/self/environ`: Used to execute code by injecting it into environment variables.
-- `/root/.bash_history`: Contains command history for the root user.
-- `/var/log/apache2/access.log` or `/var/log/nginx/access.log`: Used for log poisoning to achieve remote code execution (RCE).
-- file_get_contents is the function that causes this vulnerabilities in PHP .
+The entry point is where an application accepts user input and uses it directly (or with insufficient validation) to determine which file to include or load. Common entry points include:
 
+- **URL Parameters**: `page=about.php`, `file=config.ini`
+- **Form Fields**: File upload paths, file selection inputs
+- **Cookies**: File path stored in session or cookie data
+- **Headers**: Custom headers containing file paths
+- **Database Values**: User-controlled data fetched from database used in include statements
+
+The vulnerability occurs when the application passes this user input directly to file inclusion functions without proper validation or sanitization.
+
+## Attack Methods
+
+### Path Traversal
+- **Directory Traversal**: Navigate up directory levels using relative paths
+- **Dot-dot-slash attacks**: Use `../` sequences to climb directories
+- Goal: Reach root directory and access sensitive files
+
+## Common Target Files
+
+### Linux System Files
+- `/etc/passwd`: User account information (world-readable)
+- `/etc/shadow`: Hashed user passwords (root privileges required)
+- `/etc/issue`: System identification information
+- `/etc/profile`: System-wide environment variables
+- `/proc/version`: Kernel version and system information
+- `/proc/self/environ`: Environment variables (RCE vector)
+- `/root/.bash_history`: Root user command history
+- `/var/log/apache2/access.log` or `/var/log/nginx/access.log`: Log files (RCE via log poisoning)
+
+## Vulnerable Functions
+
+### PHP
+- `file_get_contents()`: Common function exploited for file inclusion
+
+## Bypass Techniques
+
+- **Keyword Filtering Bypass**: If `../` is filtered, use `....//` to bypass restrictions
+- **Directory Restriction Bypass**: If inclusion is limited to a defined directory, include the target path in your payload
+
+## Prevention Methods
+
+- **Keep systems updated**: Maintain the latest versions of all operating systems and services
+- **Disable error reporting**: Turn off PHP errors and detailed error messages to avoid leaking source code information
+- **Web Application Firewall (WAF)**: Configure a WAF to detect and prevent file inclusion attacks
+- **Disable risky functions**: Disable `allow_url_fopen` to prevent Remote File Inclusion (RFI)
+- **Input validation**: Never trust user input—always validate, sanitize, and use allowlists for file paths
+- **Use secure include functions**: Implement proper path validation before including files
