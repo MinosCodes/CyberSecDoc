@@ -41,6 +41,7 @@ What the issue, technique, or concept changes in practice.
 ## Current Notes
 
 - [IDOR](IDOR.md)
+- [File Inclusion](File_inclusion.md)
 
 ## Author
 
